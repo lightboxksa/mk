@@ -1,0 +1,197 @@
+{% extends 'base/main.html' %} {% load static %}
+
+{% block content %}
+
+  {% comment %} content {% endcomment %}
+  <div class="content">
+    <h2>لوحة التحكم</h2>
+    <div class="top">
+
+      <div class="cont">
+        <div class="left" style="background: #128c7e14;color: #128c7e;">
+          <i class="material-icons-outlined">contacts</i>
+        </div>
+        <div class="right">
+          <span class="title">الارقام المتاحة</span>
+          <span class='bold'>{{user_config.total_received_numbers}}</span>
+        </div>
+      </div>
+
+      <div class="cont">
+        <div class="left" style="color: #ff9500;background: #fff3e3;">
+          <i class="material-icons-outlined">message</i>
+        </div>
+        <div class="right">
+          <span class="title">الرسائل المرسلة</span>
+          <span class='conf'>اليوم : {{todat_messages}}</span>
+          <span class='conf'>الكل : {{total_messages}}</span>
+        </div>
+      </div>
+
+      <div class="cont">
+        <div class="left" style="color: #ff4857;background: #fce3e5;">
+          <i class="material-icons-outlined">schedule</i>
+        </div>
+        <div class="right">
+          <span class="title">سجل العمليات</span>
+          <span class='conf'>متاح : {{available_tasks_len}}</span>
+          <span class='conf'>الكل : {{tasks_len}}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tasks_manager">
+      <span class="title">مدير الاعلانات</span>
+      <button class="add_task_bt">
+        <i class="material-icons">add</i>
+        اضف اعلان
+      </button>
+      <table>
+        {% if tasks|length != 0  %}
+          <thead>
+            <tr>
+              <th>اسم الاعلان</th>
+              <th class="xsm-hide">الحالة</th>
+              <th class="sm-hide">عدد الارقام</th>
+            </tr>
+          </thead>
+        {% endif %}
+        <tbody>
+          {% for task in tasks %}
+            <tr >
+              <td style="padding: 8px;">{{task.name}}</td>
+              <td class="xsm-hide">
+                
+                {% if task.available and user_config.total_received_numbers != 0 %}
+                  <span class="status task_available"></span>
+                {% else %}
+                  <span class="status task_unavailable"></span>
+                {% endif %}
+                  
+              </td>
+              <td class="sm-hide">{{task.range}}</td>
+              <td class="button">
+                <span>
+                  {% url 'message_engine_app:message_engine' task.id as url %}
+                  {% if task.available and user_config.total_received_numbers != 0 %}
+                    <button style="background-color: #04b07d;" class="start" statu="on" url="{{url}}" title="بدأ الاعلان">
+                      <i class="material-icons">start</i>
+                    </button>
+                  {% else %}
+                    <button style="background-color: #04b07d;cursor: no-drop;" class="start" statu="off" url="{{url}}" title="اراقامك غير كافية لبدأ اعلانك">
+                      <i class="material-icons">start</i>
+                    </button>
+                    {% endif %}
+                  <button  class="delete" title="حدف الاعلان">
+                    <i class="material-icons">delete_outline</i>
+                  </button>
+                </span>
+              </td>
+            </tr>
+            <span id="task_id" data="{{task.id}}"></span>
+            {% endfor %}
+
+        </tbody>
+      </table>
+    </div>
+    <div class="box_new_task none">
+
+      <form method="POST" enctype="multipart/form-data" class="add_task">
+        {% csrf_token %}
+        <input type="file" name="img_file" id="img_file" accept="image/png" class="none">
+        <div class="t-c">
+          <span class="title">اعلان جديد</span>
+          <span class="close-box"></span>
+        </div>
+        <div class="cont">
+
+          <label for="task_name">اسم الاعلان *</label>
+          <input type="text" id="task_name" name="task_name" maxlength="15" required>
+
+
+
+          <div class="duble">
+            <span>
+              <label for="country">البلد</label>
+              <select name="country" id="country">
+                <option value="all" default >الكل</option>
+                {% for country in countres %}
+                  <option value="{{country.country}}" >{{country.country}}</option>
+                {% endfor %}
+              </select>
+            </span>
+            
+            <span>
+              <label for="city">المدينة</label>
+              <select name="city" id="city">
+                <option value="all" default >الكل</option>
+                {% for city in cites %}
+                  <option value="{{city.city}}" country='{{city.country}}' class="city_option">{{city.city}}</option>
+                {% endfor %}
+              </select>
+            </span>
+
+          </div>
+
+          <div class="duble">
+            <span>
+              <label for="job">المهنة</label>
+              <select name="job" id="job">
+                <option value="all" default >الكل</option>
+                {% for job in jobs %}
+                  <option value="{{job.job}}" >{{job.job}}</option>
+                {% endfor %}
+              </select>
+            </span>
+            
+            <span>
+              <label for="gender">النوع</label>
+              <select name="gender" id="gender">
+                <option value="all" default >الكل</option>
+                <option value="male">ذكر</option>
+                <option value="female">انثى</option>
+      
+              </select>
+            </span>
+
+          </div>
+
+          <label for="message">الرسالة *</label>
+          <textarea name="message" id="message" required></textarea>
+          <span class="add_img">
+            <span class="img"></span>
+          </span>
+
+          
+
+        </div>
+        <div class="bottom">
+          
+          {% if user_config.offer %}
+            <input type="submit" value="ارسال">
+          {% else %}
+            <span class="task_add" style="cursor: no-drop;" title="يرجى شراء عرض ما اولا">ارسال</span>
+          {% endif %}
+          <span class="close-box">الغاء</span>
+        </div>
+      </form>
+
+    </div>
+
+  </div>
+
+  <div class="none">
+  {% comment %} delete and start project {% endcomment %}
+    <form class="none" method="POST" style="display:none;">
+      {% csrf_token %}
+      <input type="text" name="start">
+      <input type="text" name="logout">
+      <input type="submit" value="" id="go_tasks_manage">
+    </form>
+
+    {% comment %} urls {% endcomment %}
+    <a href="" class="go_to_message_engine"></a>
+  </div>
+
+{% endblock content %}
